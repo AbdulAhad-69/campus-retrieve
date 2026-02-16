@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # TELL APACHE WHERE WE ARE
+    RewriteBase /campus-retrieve/public/
+
+    # If the request is not a real file or directory...
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # ...redirect it to index.php
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
