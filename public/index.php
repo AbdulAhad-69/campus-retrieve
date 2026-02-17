@@ -1,6 +1,8 @@
 <?php
 // public/index.php
-
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 // 1. Start Session
 session_start();
 
@@ -63,6 +65,40 @@ switch ($path) {
         require_once '../src/Controllers/ItemController.php';
         $controller = new ItemController();
         $controller->show();
+        break;
+
+    case '/browse':
+        // logic to load ItemController -> index()
+        require_once '../src/Controllers/ItemController.php';
+        $controller = new ItemController();
+        $controller->index();
+        break;
+
+    case '/profile':
+        // logic to load ProfileController -> index()
+        require_once '../src/Controllers/ProfileController.php';
+        $controller = new ProfileController();
+        $controller->index();
+        break;
+
+    case '/profile/delete':
+        // logic to load ProfileController -> delete()
+        require_once '../src/Controllers/ProfileController.php';
+        $controller = new ProfileController();
+        $controller->delete();
+        break;
+
+    case '/profile/resolve':
+        // logic to load ProfileController -> resolve()
+        require_once '../src/Controllers/ProfileController.php';
+        $controller = new ProfileController();
+        $controller->resolve();
+        break;
+
+    case '/claim/submit':
+        require_once '../src/Controllers/ClaimController.php';
+        $controller = new ClaimController();
+        $controller->store();
         break;
 
     default:

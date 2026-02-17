@@ -1,17 +1,20 @@
 <?php
 // src/Controllers/ItemController.php
 require_once __DIR__ . '/../Models/Item.php';
+require_once __DIR__ . '/../Models/Claim.php'; // 1. Load Claim Model
 
 class ItemController
 {
 
     private $db;
     private $itemModel;
+    private $claimModel; // 2. Add Property
 
     public function __construct()
     {
         $this->db = Database::getInstance();
         $this->itemModel = new Item($this->db);
+        $this->claimModel = new Claim($this->db); // 3. Initialize
     }
 
     // Show the "Post Item" Form
@@ -22,7 +25,6 @@ class ItemController
             exit;
         }
 
-        // Fetch categories to show in the dropdown
         $categories = $this->itemModel->getCategories();
         require_once __DIR__ . '/../Views/items/create.php';
     }
@@ -32,32 +34,24 @@ class ItemController
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-            // 1. Handle File Upload
+            // Handle File Upload
             $imagePath = null;
             if (isset($_FILES['image']) && $_FILES['image']['error'] === 0) {
                 $allowed = ['jpg', 'jpeg', 'png', 'webp'];
                 $filename = $_FILES['image']['name'];
-                $filetype = $_FILES['image']['type'];
                 $filesize = $_FILES['image']['size'];
-
-                // Get extension
                 $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
 
-                // Validate
-                if (in_array($ext, $allowed) && $filesize < 5000000) { // Max 5MB
-                    // Generate unique name: item_USERID_TIMESTAMP.jpg
+                if (in_array($ext, $allowed) && $filesize < 5000000) {
                     $newFilename = "item_" . $_SESSION['user_id'] . "_" . time() . "." . $ext;
                     $destination = __DIR__ . '/../../public/uploads/' . $newFilename;
-
                     if (move_uploaded_file($_FILES['image']['tmp_name'], $destination)) {
                         $imagePath = $newFilename;
                     }
-                } else {
-                    die("Error: Invalid file type or too large.");
                 }
             }
 
-            // 2. Prepare Data
+            // Prepare Data
             $data = [
                 'user_id'     => $_SESSION['user_id'],
                 'category_id' => $_POST['category_id'],
@@ -68,7 +62,6 @@ class ItemController
                 'image_path'  => $imagePath
             ];
 
-            // 3. Save to DB
             if ($this->itemModel->create($data)) {
                 header("Location: /campus-retrieve/public/home?status=posted");
             } else {
@@ -89,10 +82,29 @@ class ItemController
         $item = $this->itemModel->getById($id);
 
         if (!$item) {
-            echo "Item not found."; // We can make a pretty 404 page later
+            echo "Item not found.";
             return;
         }
 
+        // 4. NEW LOGIC: If I am the owner, fetch the claims!
+        $claims = [];
+        if (isset($_SESSION['user_id']) && $_SESSION['user_id'] == $item['user_id']) {
+            $claims = $this->claimModel->getClaimsByItem($id);
+        }
+
         require_once __DIR__ . '/../Views/items/show.php';
+    }
+
+    // Browse/Search Page
+    public function index()
+    {
+        $keyword = $_GET['q'] ?? '';
+        $category = $_GET['category'] ?? '';
+        $type = $_GET['type'] ?? '';
+
+        $items = $this->itemModel->search($keyword, $category, $type);
+        $categories = $this->itemModel->getCategories();
+
+        require_once __DIR__ . '/../Views/items/index.php';
     }
 }
