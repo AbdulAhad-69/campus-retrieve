@@ -25,21 +25,32 @@ switch ($path) {
         $controller = new HomeController();
         $controller->index();
         break;
-        
+
+    case '/post':
+        // logic to load ItemController -> create() or store()
+        require_once '../src/Controllers/ItemController.php';
+        $controller = new ItemController();
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $controller->store();
+        } else {
+            $controller->create();
+        }
+        break;
+
     case '/login':
         // logic to load AuthController -> login()
         require_once '../src/Controllers/AuthController.php';
         $controller = new AuthController();
         $controller->login();
         break;
-        
+
     case '/register':
         // logic to load AuthController -> register()
         require_once '../src/Controllers/AuthController.php';
         $controller = new AuthController();
         $controller->register();
         break;
-    
+
     case '/logout':
         // logic to load AuthController -> logout()
         require_once '../src/Controllers/AuthController.php';
@@ -47,9 +58,15 @@ switch ($path) {
         $controller->logout();
         break;
 
+    case '/item':
+        // logic to load ItemController -> show()
+        require_once '../src/Controllers/ItemController.php';
+        $controller = new ItemController();
+        $controller->show();
+        break;
+
     default:
         http_response_code(404);
         echo "<h1>404 Not Found</h1>";
         break;
 }
-?>
